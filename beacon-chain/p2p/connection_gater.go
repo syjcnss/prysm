@@ -1,7 +1,9 @@
 package p2p
 
 import (
+	"encoding/json"
 	"net"
+	"net/http"
 	"runtime"
 
 	"github.com/libp2p/go-libp2p/core/control"
@@ -23,6 +25,26 @@ const (
 	// we will handle inbound requests.
 	highWatermarkBuffer = 10
 )
+
+// Type of aws ip-ranges.json
+type Prefix struct {
+	IpPrefix string `json:"ip_prefix"`
+	Region string `json:"region"`
+	Service string `json:"service"`
+	NetworkBorderGroup string `json:"network_border_group"`
+}
+type IPv6Prefix struct {
+	Ipv6Prefix string `json:"ipv6_prefix"`
+	Region string `json:"region"`
+	Service string `json:"service"`
+	NetworkBorderGroup string `json:"network_border_group"`
+}
+type IpRanges struct {
+	SyncToken string `json:"syncToken"`
+	CreateDate string `json:"createDate"`
+	Prefixes []Prefix `json:"prefixes"`
+	Ipv6Prefixes []Prefix `json:"ipv6_prefixes"`
+}
 
 // InterceptPeerDial tests whether we're permitted to Dial the specified peer.
 func (_ *Service) InterceptPeerDial(_ peer.ID) (allow bool) {
@@ -118,6 +140,34 @@ func configureFilter(cfg *Config) (*multiaddr.Filters, error) {
 			return nil, err
 		}
 		addrFilter.AddFilter(*ipnet, multiaddr.ActionAccept)
+	}
+
+	if (cfg.AllowAWSRegion != "") {
+		response, err := http.Get("https://ip-ranges.amazonaws.com/ip-ranges.json")
+		if err != nil {
+			return nil, err
+		}
+
+		var ipRanges IpRanges
+		err = json.NewDecoder(response.Body).Decode(&ipRanges)
+		if err != nil {
+			return nil, err
+		}
+
+		err = response.Body.Close()
+		if err != nil {
+			return nil, err
+		}
+
+		for _, prefix := range ipRanges.Prefixes {
+			if prefix.Region == cfg.AllowAWSRegion {
+				_, ipnet, err := net.ParseCIDR(prefix.IpPrefix)
+				if err != nil {
+					return nil, err
+				}
+				addrFilter.AddFilter(*ipnet, multiaddr.ActionAccept)
+			}
+		}
 	}
 
 	// Configure from provided deny list in the config.

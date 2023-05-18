@@ -177,6 +177,13 @@ var (
 			"192.168.0.0/16 would deny connections from peers on your local network only. The " +
 			"default is to accept all connections.",
 	}
+	// P2PAWSRegion defines aws region to allow connections from.
+	P2PAWSRegion = &cli.StringFlag{
+		Name: "p2p-aws-region",
+		Usage: "The AWS region to allow connections from. " +
+			"Example: us-east-1 would allow connections from peers in the us-east-1 region. The " +
+			"default is to accept all connections.",
+	}
 	// ForceClearDB removes any previously stored data at the data directory.
 	ForceClearDB = &cli.BoolFlag{
 		Name:  "force-clear-db",

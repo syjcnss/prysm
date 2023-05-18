@@ -26,6 +26,7 @@ type Config struct {
 	MaxPeers            uint
 	AllowListCIDR       string
 	DenyListCIDR        []string
+	AllowAWSRegion		string
 	StateNotifier       statefeed.Notifier
 	DB                  db.ReadOnlyDatabase
 }

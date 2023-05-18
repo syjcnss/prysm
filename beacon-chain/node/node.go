@@ -545,6 +545,7 @@ func (b *BeaconNode) registerP2P(cliCtx *cli.Context) error {
 		MaxPeers:          cliCtx.Uint(cmd.P2PMaxPeers.Name),
 		AllowListCIDR:     cliCtx.String(cmd.P2PAllowList.Name),
 		DenyListCIDR:      slice.SplitCommaSeparated(cliCtx.StringSlice(cmd.P2PDenyList.Name)),
+		AllowAWSRegion:	   cliCtx.String(cmd.P2PAWSRegion.Name),
 		EnableUPnP:        cliCtx.Bool(cmd.EnableUPnPFlag.Name),
 		StateNotifier:     b,
 		DB:                b.db,
